@@ -23,13 +23,13 @@ public class SpellComboManager : MonoBehaviour {
 	
 	void Update () {
 
-		if (Input.GetMouseButtonDown (0)) {
+		if (Input.GetMouseButtonDown (0) && player.health.health != 0) {
 			LMB = true;
 		} else {
 			LMB = false;
 		}
 		
-		if (Input.GetMouseButton (1) && Time.time >= minButtonCheckTime) {
+		if (Input.GetMouseButton (1) && Time.time >= minButtonCheckTime && player.health.health != 0) {
 			RMB = true;
 		} else {
 			RMB = false;
@@ -44,31 +44,34 @@ public class SpellComboManager : MonoBehaviour {
 		if (gameObject.activeInHierarchy) {
 
 			CombosDone.Clear ();
-			foreach(SpellCast spell in Spells)
+			for(int i = 0; i < Spells.Count; i++)
 			{
 				CombosDone.Add (false);
 			}
 
-			for(int i = 0; i < Spells.Count; i++) {
-				if(Spells[i].combo == ClickCombo) {
-					CombosDone[i] = true;
-				} else {
-					CombosDone[i] = false;
-				}
-			}
-
 			if (LMB && Time.time < retryTime && comboPlace == 2) {
-				minButtonCheckTime = Time.time + 0.1f;
+				minButtonCheckTime = Time.time + 0.2f;
 				ClickCombo.y = 0;
 				SpellText.text += "-Left";
 				comboPlace = 3;
 			}
 			if (RMB && Time.time < retryTime && comboPlace == 2) {
-				minButtonCheckTime = Time.time + 0.1f;
+				minButtonCheckTime = Time.time + 0.2f;
 				ClickCombo.y = 1;
 				SpellText.text += "-Right";
 				comboPlace = 3;
 			}
+			if(comboPlace == 3)
+			{
+				for(int i = 0; i < Spells.Count; i++) {
+					if(Spells[i].combo == ClickCombo) {
+						CombosDone[i] = true;
+					} else {
+						CombosDone[i] = false;
+					}
+				}
+			}
+
 			if(comboPlace == 3){
 				bool failedCombos = true;
 				foreach(bool combo in CombosDone) {
@@ -86,14 +89,14 @@ public class SpellComboManager : MonoBehaviour {
 
 			if (LMB && Time.time < retryTime && comboPlace == 1) {
 				retryTime = Time.time + 1;
-				minButtonCheckTime = Time.time + 0.1f;
+				minButtonCheckTime = Time.time + 0.2f;
 				comboPlace = 2;
 				ClickCombo.x = 0;
 				SpellText.text += "-Left";
 			}
 			if (RMB && Time.time < retryTime && comboPlace == 1) {
 				retryTime = Time.time + 1;
-				minButtonCheckTime = Time.time + 0.1f;
+				minButtonCheckTime = Time.time + 0.2f;
 				comboPlace = 2;
 				ClickCombo.x = 1;
 				SpellText.text += "-Right";
@@ -101,7 +104,7 @@ public class SpellComboManager : MonoBehaviour {
 			
 			if (RMB && Time.time > retryTime && comboPlace == 0) {
 				retryTime = Time.time + 1;
-				minButtonCheckTime = Time.time + 0.1f;
+				minButtonCheckTime = Time.time + 0.2f;
 				comboPlace = 1;
 				SpellText.text = "Right";
 			}

@@ -16,10 +16,11 @@ public class Health : MonoBehaviour {
 	public Transform respScreen;
 	public Transform spawnPos;
 	public float dmgTaken = 1f;
+	public float knockTaken = 1f;
 
 	// Use this for initialization
 	void Start () {
-		nextRegen = regenDelay;
+		nextRegen = regenDelay + Time.time;
 		if (!PlayerInfo)
 			PlayerInfo = GetComponent<Player> ();
 	}
@@ -43,7 +44,7 @@ public class Health : MonoBehaviour {
 			GetComponent<Rigidbody> ().isKinematic = true;
 		} else if (!dead) {
 
-			if(Time.time >= nextRegen && health < maxHealth) {
+			if(Time.time >= nextRegen && health < maxHealth && regen > 0 || Time.time >= nextRegen && regen < 0 ) {
 				nextRegen = Time.time + regenDelay;
 				health += regen;
 			}
@@ -53,7 +54,7 @@ public class Health : MonoBehaviour {
 
 	public IEnumerator Die () {
 		for (float i = 0; i < 90; i += 180*Time.deltaTime) {
-			transform.Rotate (Vector3.forward*-180*Time.deltaTime, Space.Self);
+			transform.Rotate (Vector3.forward*180*Time.deltaTime, Space.Self);
 			yield return new WaitForEndOfFrame();
 		}
 		yield return new WaitForSeconds (0.75f);

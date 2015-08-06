@@ -22,6 +22,7 @@ public class Spell_Charge : Spell {
 			hitbox = transform.root.GetComponent<ColInfo> ();
 		if (!FX)
 			FX = GetComponentInChildren<ParticleSystem> ();
+		GetComponent<Collider> ().enabled = false;
 	}
 
 	void Update() {
@@ -33,8 +34,11 @@ public class Spell_Charge : Spell {
 				updatedHits.RemoveAt(i);
 		}
 	}
-	public IEnumerator CastSpell(Item_Weapon Weapon) {
+	public override IEnumerator CastSpell(Item_Weapon Weapon) {
 		doneCasting = false;
+		updatedHits.Clear ();
+		GetComponent<Collider> ().enabled = true;
+		yield return new WaitForFixedUpdate ();
 		ChargeMults.x = Random.Range (ChargeMultsMin.x, ChargeMultsMax.x);
 		ChargeMults.y = Random.Range (ChargeMultsMin.y, ChargeMultsMax.y);
 		Item_Weapon adjustedWeapon = new Item_Weapon (Weapon.name, (int) Mathf.Clamp (Mathf.RoundToInt(Weapon.dmgMin * dmgMult), 1, Mathf.Infinity), (int) Mathf.Clamp (Mathf.RoundToInt(Weapon.dmgMax * dmgMult), 1, Mathf.Infinity), Weapon.range, knockback, 0);
@@ -53,10 +57,10 @@ public class Spell_Charge : Spell {
 			transform.root.GetComponent<Enemy> ().disableWalk = true;
 			foreach (Health hit in updatedHits) {
 				if (hit != health && hit.health != 0 && !hitObjs.Contains (hit)) {
-					if(transform.root.GetComponent<Enemy>() && !hit.transform.root.GetComponent<Enemy>() ||
-					   !transform.root.GetComponent<Enemy>() && hit.transform.root.GetComponent<Enemy>())
+					if(hit && transform.root.GetComponent<Enemy>() && !hit.transform.root.GetComponent<Enemy>() ||
+					   hit && !transform.root.GetComponent<Enemy>() && hit.transform.root.GetComponent<Enemy>())
 					{
-						DealDamage (hit, adjustedWeapon, knockMultipliers, Weapon.IDs);
+						adjustedWeapon.DealDamage (hit, transform, knockMultipliers, Weapon.IDs);
 						hitObjs.Add (hit);
 					}
 				}
@@ -66,13 +70,19 @@ public class Spell_Charge : Spell {
 		FX.Stop ();
 		health.invulnerable = false;
 		doneCasting = true;
+		GetComponent<Collider> ().enabled = false;
 	}
 
-	void OnTriggerEnter (Collider col) {
+	void OnTriggerStay (Collider col) {
 		if (col.GetComponent<Health> ()) {
-			if(col.GetComponent<Health>() != GetComponent<Health>())
-			{
-				updatedHits.Add (col.GetComponent<Health>());
+			if (col.GetComponent<Health> () != health && col.GetComponent<Health> ().health != 0) {
+				if (!updatedHits.Contains (col.GetComponent<Health> ())) {
+					updatedHits.Add (col.GetComponent<Health> ());
+				}
+			} else if (col.GetComponent<Health> () != health) {
+				if (updatedHits.Contains (col.GetComponent<Health> ())) {
+					updatedHits.Remove (col.GetComponent<Health> ());
+				}
 			}
 		}
 	}

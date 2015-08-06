@@ -33,7 +33,7 @@ public class Spell_Shockwave : Spell {
 				updatedHits.RemoveAt(i);
 		}
 	}
-	public IEnumerator CastSpell(Item_Weapon Weapon) {
+	public override IEnumerator CastSpell(Item_Weapon Weapon) {
 		transform.SetParent (null);
 		doneCasting = false;
 		Item_Weapon adjustedWeapon = new Item_Weapon (Weapon.name, (int) Mathf.Clamp (Mathf.RoundToInt(Weapon.dmgMin * dmgMult), 1, Mathf.Infinity), (int) Mathf.Clamp (Mathf.RoundToInt(Weapon.dmgMax * dmgMult), 1, Mathf.Infinity), Weapon.range, knockback, 0);
@@ -45,11 +45,11 @@ public class Spell_Shockwave : Spell {
 		while (Time.time < endTime) {
 			foreach (Health hit in updatedHits) {
 				if (hit != health && hit.health != 0 && !hitObjs.Contains (hit)) {
-					if(!defParent.root.GetComponent<Enemy>() && hit.transform.root.GetComponent<Enemy>() ||
-					   defParent.root.GetComponent<Enemy>() && !hit.transform.root.GetComponent<Enemy>()) {
+					if(hit && defParent && !defParent.root.GetComponent<Enemy>() && hit.transform.root.GetComponent<Enemy>() ||
+					   hit && defParent && defParent.root.GetComponent<Enemy>() && !hit.transform.root.GetComponent<Enemy>()) {
 						if(Vector3.Distance (transform.position, hit.transform.position) > size.x/2 - waveThickness)
 						{
-							DealDamage (hit, adjustedWeapon, knockMultipliers, Weapon.IDs, true);
+							adjustedWeapon.DealDamage (hit, transform, knockMultipliers, Weapon.IDs, true);
 							hitObjs.Add (hit);
 						}
 					}
@@ -76,9 +76,18 @@ public class Spell_Shockwave : Spell {
 
 	void OnTriggerEnter (Collider col) {
 		if (col.GetComponent<Health> ()) {
-			if(col.GetComponent<Health>() != health)
+			if(col.GetComponent<Health>() != health && col.GetComponent<Health>().health != 0)
 			{
-				updatedHits.Add (col.GetComponent<Health>());
+				if(!updatedHits.Contains (col.GetComponent<Health>()))
+				{
+					updatedHits.Add (col.GetComponent<Health>());
+				}
+			}
+			else if(col.GetComponent<Health>() != health) {
+				if(updatedHits.Contains (col.GetComponent<Health>()))
+				{
+					updatedHits.Remove (col.GetComponent<Health>());
+				}
 			}
 		}
 	}

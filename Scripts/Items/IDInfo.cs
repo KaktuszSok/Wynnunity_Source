@@ -32,9 +32,9 @@ public class IDInfo : MonoBehaviour {
 	}
 
 	public void Steal() {
-		if(Health)
+		if(Health && Health.health != 0)
 			Health.health += totalLS;
-		if (Mana) {
+		if (Mana && Health.health != 0) {
 			Mana.MP += totalMS;
 		}
 	}

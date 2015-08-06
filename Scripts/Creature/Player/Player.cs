@@ -10,6 +10,8 @@ public class Player : MonoBehaviour {
 	public static MouseLook TurnBody;
 	public static MouseLook TurnHead;
 	public static LayerMask EnemyLOS;
+	public static LayerMask SpawnLOS;
+	public static float CamRevertTime;
 
 	public Walk walk;
 	public Punch punch;
@@ -18,10 +20,12 @@ public class Player : MonoBehaviour {
 	public MouseLook TB;
 	public MouseLook TH;
 	public LayerMask enemyLOS;
+	public LayerMask spawnLOS;
 
 	// Use this for initialization
 	void Awake () {
 		DontDestroyOnLoad (gameObject);
+		PlayerManager.Players.Add (this);
 		Walk = GetComponent<Walk> ();
 		Punch = GetComponent<Punch> ();
 		Health = GetComponent<Health> ();
@@ -29,6 +33,7 @@ public class Player : MonoBehaviour {
 		TurnBody = TB;
 		TurnHead = TH;
 		EnemyLOS = enemyLOS;
+		SpawnLOS = spawnLOS;
 
 		walk = Walk;
 		health = Health;
@@ -37,6 +42,10 @@ public class Player : MonoBehaviour {
 	}
 
 	void Update() {
-
+		if (Camera.main.transform.parent.localRotation.z != 0 && Time.time > CamRevertTime) {
+			Vector3 rotAngle = Camera.main.transform.parent.localEulerAngles;
+			rotAngle.z = 0;
+			Camera.main.transform.parent.localEulerAngles = rotAngle;
+		}
 	}
 }

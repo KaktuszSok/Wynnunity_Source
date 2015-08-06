@@ -20,7 +20,7 @@ public class GroundDetect : MonoBehaviour {
 	public bool chckdist() {
 		failedCount = 0;
 		foreach (Transform check in checks) {
-			if(Physics.Raycast(check.position, -check.transform.up, dist))
+			if(Physics.Raycast(check.position, -check.transform.up, dist, Player.EnemyLOS))
 			{
 				return true;
 			}

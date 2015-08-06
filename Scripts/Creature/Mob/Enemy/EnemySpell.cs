@@ -13,63 +13,76 @@ public class EnemySpell : MonoBehaviour {
 	public float tryCastTime;
 	public Spell Spell;
 	public ParticleSystem WarmupFX;
-	private float defSpd;
 	public float DisableTurnBeforeEndCast = 0.25f;
-	public List<float> DTBEC;
+	public List<float> DisableTurn;
+	public bool onlyCastOnGround = true;
+	public bool chooseByDistance;
 
 	void Start() {
-		defSpd = enemy.enemy.speed;
 		if (!enemy)
 			enemy = transform.root.GetComponent<EnemyAttack> ();
 	}
 
 	void Update() {
 		if (enemy.enemy.HP.health == 0) {
-			StopAllCoroutines();
+			StopAllCoroutines ();
 		}
-		if (enemy.enemy.player && Spells.Count != 0 && Spell == null && enemy.enemy.player.GetComponent<Health>().health != 0) {
-			Spell = Spells [Random.Range (0, Spells.Count)];
-		} else if(enemy.enemy.player && enemy.hasLOS && Spells.Count != 0 && enemy.enemy.player.GetComponent<Health>().health != 0) {
-			float spellRange = spellRanges [Spells.IndexOf (Spell)];
-			DisableTurnBeforeEndCast = DTBEC[Spells.IndexOf (Spell)];
-			if (Vector3.Distance (enemy.transform.position, enemy.enemy.player.transform.position) < spellRange) {
-				if(Time.time > tryCastTime && Time.time < tryCastTime + maxSpellDelay) {
-					if(Random.Range (0f, 100f) <= chancePerSecond*Time.deltaTime){
-						StartCoroutine(StartCasting (Spell, enemy.Weapon));
+
+		if (onlyCastOnGround && enemy.enemy.GroundCheck.chckdist() && enemy.enemy.player && enemy.hasLOS && Spells.Count != 0 && enemy.enemy.player.GetComponent<Health> ().health != 0 ||
+		    !onlyCastOnGround && enemy.enemy.player && enemy.hasLOS && Spells.Count != 0 && enemy.enemy.player.GetComponent<Health> ().health != 0) {
+			Spell = chooseSpell ();
+			if (Spell != null) {
+				float spellRange = spellRanges [Spells.IndexOf (Spell)];
+				if (Vector3.Distance (enemy.transform.position, enemy.enemy.player.transform.position) < spellRange) {
+					DisableTurnBeforeEndCast = DisableTurn [Spells.IndexOf (Spell)];
+					if (Time.time > tryCastTime && Time.time < tryCastTime + maxSpellDelay) {
+						if (Random.Range (0f, 100f) <= chancePerSecond * Time.deltaTime) {
+							StartCoroutine (StartCasting (Spell, enemy.Weapon));
+							tryCastTime = Time.time + minSpellDelay;
+							Spell = null;
+						}
+					} else if (Time.time > tryCastTime + maxSpellDelay) {
+						StartCoroutine (StartCasting (Spell, enemy.Weapon));
 						tryCastTime = Time.time + minSpellDelay;
 						Spell = null;
 					}
-				} else if(Time.time > tryCastTime + maxSpellDelay){
-					StartCoroutine(StartCasting (Spell, enemy.Weapon));
-					tryCastTime = Time.time + minSpellDelay;
-					Spell = null;
 				}
 			}
 		}
 	}
 
+	Spell chooseSpell() {
+		if (!chooseByDistance) {
+			return Spells [Random.Range (0, Spells.Count)];
+		} else {
+			Spell chosenSpell = null;
+			float closest = -1f;
+			foreach(Spell spell in Spells) {
+				float spellRange = spellRanges [Spells.IndexOf (spell)];
+				if (Vector3.Distance (enemy.transform.position, enemy.enemy.player.transform.position) < spellRange) {
+					if(closest == -1 || spellRange < closest) {
+						closest = spellRange;
+						chosenSpell = spell;
+					}
+				}
+			}
+			if(chosenSpell != null) {
+				return chosenSpell;
+			} else
+				return null;
+		}
+	}
+
 	public IEnumerator StartCasting(Spell spell, Item_Weapon weapon) {
 		WarmupFX.Play ();
-		enemy.enemy.speed = 0;
+		enemy.enemy.effects.Apply ("Stun", WarmupFX.duration, 2);
 		yield return new WaitForSeconds (WarmupFX.duration - DisableTurnBeforeEndCast);
 		enemy.enemy.disableTurnTime = Time.time + DisableTurnBeforeEndCast;
 		yield return new WaitForSeconds (WarmupFX.duration - WarmupFX.time);
-		enemy.enemy.speed = defSpd;
 		Cast (spell, weapon);
 	}
 
 	public void Cast(Spell spell, Item_Weapon weapon) {
-		if (spell is Spell_Multihit) {
-			Spell_Multihit S = spell as Spell_Multihit;
-			S.StartCoroutine (S.CastSpell (enemy.Weapon));
-		}
-		if (spell is Spell_Charge) {
-			Spell_Charge S = spell as Spell_Charge;
-			S.StartCoroutine (S.CastSpell (enemy.Weapon));
-		}
-		if (spell is Spell_Shockwave) {
-			Spell_Shockwave S = spell as Spell_Shockwave;
-			S.StartCoroutine (S.CastSpell (enemy.Weapon));
-		}
+		spell.StartCoroutine (spell.CastSpell (weapon as Item_Weapon));
 	}
 }

@@ -6,8 +6,13 @@ public class SpawnTrigger : MonoBehaviour {
 
 	public List<GameObject> MobsInTrigger = new List<GameObject>();
 	public SpawnArea SA;
+	private float nextCheckTime;
+	public bool playerPresent;
+	private Collider Collider;
 	
 	void Start () {
+		Collider = GetComponent<Collider> ();
+		Collider.enabled = false;
 		if (!SA) {
 			SA = transform.parent.GetComponent<SpawnArea>();
 		}
@@ -19,6 +24,21 @@ public class SpawnTrigger : MonoBehaviour {
 				MobsInTrigger.RemoveAt (i);
 			}
 		}
+
+		if (Time.time >= nextCheckTime) {
+			nextCheckTime = Time.time + 0.25f;
+			playerPresent = false;
+			StartCoroutine (checkForPlayer());
+		}
+	}
+
+	IEnumerator checkForPlayer() {
+		Collider.enabled = true;
+		yield return new WaitForFixedUpdate ();
+		Collider.enabled = false;
+		if (!playerPresent) {
+			SA.activated = false;
+		}
 	}
 
 	void OnTriggerStay (Collider col) {
@@ -27,9 +47,13 @@ public class SpawnTrigger : MonoBehaviour {
 		}
 
 		if (col.transform.root.tag == "Player" && col.transform.root.GetComponent<Health> ().health != 0) {
+			if(!SA.activated)
+				SA.ResetNextSpawn();
 			SA.activated = true;
-		} else if (col.transform.root.tag == "Player") {
+			playerPresent = true;
+		} else if (col.transform.root.tag == "Player" && col.transform.root.GetComponent<Health> ().health == 0) {
 			SA.activated = false;
+			playerPresent = false;
 		}
 	}
 
@@ -40,6 +64,7 @@ public class SpawnTrigger : MonoBehaviour {
 
 		if (col.transform.root.tag == "Player") {
 			SA.activated = false;
+			playerPresent = false;
 		}
 	}
 }

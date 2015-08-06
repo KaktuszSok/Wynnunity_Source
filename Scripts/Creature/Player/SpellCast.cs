@@ -33,16 +33,7 @@ public class SpellCast : MonoBehaviour {
 		if (player.mana.MP >= spell.ManaConsumed + spell.SpamMana) {
 			comboPlace = 3;
 			SpellText.text += " [Spell Cast! -" + (spell.ManaConsumed + spell.SpamMana) + "MP]";
-			if (spell is Spell_Multihit) {
-				Spell_Multihit S = spell as Spell_Multihit;
-				S.StartCoroutine (S.CastSpell (Player.Punch.heldItem as Item_Weapon));
-			} else if (spell is Spell_Charge) {
-				Spell_Charge S = spell as Spell_Charge;
-				S.StartCoroutine (S.CastSpell (Player.Punch.heldItem as Item_Weapon));
-			} else if (spell is Spell_Shockwave) {
-				Spell_Shockwave S = spell as Spell_Shockwave;
-				S.StartCoroutine (S.CastSpell (Player.Punch.heldItem as Item_Weapon));
-			}
+			spell.StartCoroutine (spell.CastSpell (Player.Punch.heldItem as Item_Weapon));
 			player.mana.MP -= spell.ManaConsumed + spell.SpamMana;
 			spell.NextSpamResetTime = Time.time + spell.SpamResetTime;
 			spell.SpamMana ++;
