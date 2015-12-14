@@ -10,7 +10,8 @@ public class Spell_Multihit : Spell {
 	public float knockback = 1.25f;
 	public float knockbackMax = 1.5f;
 	public float finalKnockback = 15.25f;
-	public float hitDelay = 0.25f;
+	public float hitDelay = 0.075f;
+	public float finalHitDelay = 0.25f;
 	public List<Health> updatedHits = new List<Health>();
 	public bool doneCasting = true;
 	public Vector2 knockMultipliers = Vector2.one;
@@ -22,6 +23,7 @@ public class Spell_Multihit : Spell {
 
 	void Start() {
 		GetComponent<Collider> ().enabled = false;
+		health = transform.root.GetComponent<Health> ();
 	}
 	void Update() {
 		if (health.health == 0) {
@@ -41,7 +43,7 @@ public class Spell_Multihit : Spell {
 		GetComponent<Collider> ().enabled = true;
 		yield return new WaitForFixedUpdate ();
 		CastFX.Play ();
-		Item_Weapon adjustedWeapon = new Item_Weapon (Weapon.name, (int) Mathf.Clamp (Weapon.dmgMin * dmgPerHit, 0, Mathf.Infinity), (int) Mathf.Clamp (Weapon.dmgMax * dmgPerHit, 0, Mathf.Infinity), Weapon.range, knockback, 0);
+		Item_Weapon adjustedWeapon = new Item_Weapon (Weapon.name, Mathf.Clamp (Weapon.dmgMin * dmgPerHit, 0, Mathf.Infinity), Mathf.Clamp (Weapon.dmgMax * dmgPerHit, 0, Mathf.Infinity), Weapon.range, knockback, 0);
 		List<Health> Hits = new List<Health> (updatedHits);
 		hitting.AddRange (Hits);
 		for(int i = 0; i < hitAmount; i++)
@@ -67,7 +69,7 @@ public class Spell_Multihit : Spell {
 			}
 		}
 		if(Hits.Count > 0)
-			yield return new WaitForSeconds (0.5f);
+			yield return new WaitForSeconds (finalHitDelay);
 		adjustedWeapon.dmgMin = Weapon.dmgMin;
 		adjustedWeapon.dmgMax = Weapon.dmgMax;
 		adjustedWeapon.knockback = finalKnockback;

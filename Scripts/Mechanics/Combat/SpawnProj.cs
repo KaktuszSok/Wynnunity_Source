@@ -8,10 +8,12 @@ public class SpawnProj : MonoBehaviour {
 	private Rigidbody rb;
 	public Vector3 firedVel;
 	private ParticleSystem FX;
-
+	public float lifeTime = 5f;
+	private float lifeTimeLeft;
 	public Spell_SmokeBomb smokeBombCast;
 
 	void Start() {
+		lifeTimeLeft = lifeTime;
 		if (GetComponentInChildren<ParticleSystem> ())
 			FX = GetComponentInChildren<ParticleSystem> ();
 		rb = GetComponent<Rigidbody> ();
@@ -19,6 +21,9 @@ public class SpawnProj : MonoBehaviour {
 	}
 
 	void FixedUpdate() {
+		lifeTimeLeft -= Time.fixedDeltaTime;
+		if (lifeTimeLeft <= 0)
+			Destroy (gameObject);
 		rb.AddForce (Vector3.down * gravity, ForceMode.Acceleration);
 	}
 

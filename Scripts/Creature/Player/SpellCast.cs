@@ -14,10 +14,6 @@ public class SpellCast : MonoBehaviour {
 	private float minButtonCheckTime;
 
 	void Start() {
-		if (!ComboManager) {
-			ComboManager = GetComponent<SpellComboManager>();
-		}
-		ComboManager.Spells.Add (this);
 		if (!player)
 			player = transform.root.GetComponent<Player> ();
 	}

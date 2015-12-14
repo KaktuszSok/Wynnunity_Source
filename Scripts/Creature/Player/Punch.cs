@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class Punch : MonoBehaviour {
-	
-	public List<GameObject> itemIcons;
+
+	public Transform heldModel;
 	public Animation punchAnim;
 	public string Itemname = "";
 	public int ItemdamageMin = 1;
@@ -27,37 +27,40 @@ public class Punch : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		hitSounds = GetComponents<AudioSource> ();
-		heldItem = ItemDB.Weapons [0];
-		heldItem.ID = 0;
 		walk = GetComponent<Walk> ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-		punchAnim = itemIcons [Mathf.Clamp (heldItem.ID, 0, itemIcons.Count - 1)].GetComponent<Animation>();
-		if (heldItem is Item_Weapon) {
-			itemIcons [Mathf.Clamp (heldItem.ID, 0, itemIcons.Count - 1)].GetComponent<WeaponInfo> ().weapon = heldItem as Item_Weapon;
-		}
+		if (Input.GetMouseButtonDown (1)) {
+			if(heldItem is Item_Consumable) {
+				Item_Consumable heldCons = (Item_Consumable) heldItem;
+				InvStack ConsumableStack = Player.Inventory.Hotbar[Player.Inventory.CurrentHotbarSlot];
+				foreach(effectInfo effect in heldCons.effects)
+					Player.Effects.Apply (effect.type, effect.stats);
+				if(ConsumableStack.item == heldCons) {
+					Player.Inventory.DropItem (ConsumableStack, 1, true);
+				}
 
-		for (int i = 0; i < itemIcons.Count; i++) {
-			if(i != Mathf.Clamp (heldItem.ID, 0, itemIcons.Count - 1))
-				itemIcons[i].SetActive(false);
-			else
-				itemIcons[i].SetActive (true);
+			} else {
+				Interact ();
+			}
 		}
 		if (Input.GetMouseButtonDown (0)) {
 			if(Time.time >= nextHitTime)
 			{
-				Hit ();
-				punchAnim.Stop ();
-				punchAnim.Play();
-				if(heldItem is Item_Weapon)
+				if(heldItem is Item_Weapon && ((Item_Weapon) heldItem).lvlMin <= XP.Level)
 				{
-					Item_Weapon heldWeapon = (Item_Weapon) heldItem;
-					nextHitTime = Time.time + heldWeapon.hitCooldown;
-				} else {
+					nextHitTime = Time.time + ((Item_Weapon) heldItem).hitCooldown;
+					Hit ();
+					punchAnim.Stop ();
+					punchAnim.Play();
+				} else if (!(heldItem is Item_Weapon)){
 					nextHitTime = Time.time + ItemCooldown;
+					Hit ();
+					punchAnim.Stop ();
+					punchAnim.Play();
 				}
 			}
 		}
@@ -68,35 +71,7 @@ public class Punch : MonoBehaviour {
 			Item_Weapon heldWeapon = (Item_Weapon)heldItem;
 			if (Physics.Raycast (Camera.main.transform.position, Camera.main.transform.forward, out hit, heldWeapon.range, hittableLayers)) {
 				if (hit.transform != transform) {
-					if(hit.transform.GetComponent<Health>() && hit.transform.GetComponent<Health>().health != 0) {
-						if (!hit.transform.GetComponent<Health> ().invulnerable)
-							hit.transform.GetComponent<Health> ().health -= (float) heldWeapon.GetDmg()*hit.transform.GetComponent<Health>().dmgTaken;
-						itemIcons[Mathf.Clamp (heldItem.ID, 0, itemIcons.Count)].GetComponent<IDInfo>().Steal ();
-						if (hit.transform.GetComponent<Rigidbody> ()) {
-							if (!walk.moving) {
-								knockMult = 1;
-							} else if (walk.speed == walk.baseSpeed)
-								knockMult = WalkKnockbackMult;
-							else if (walk.speed == walk.sprintSpeed)
-								knockMult = SprintKnockbackMult;
-							if (hit.transform.GetComponent<Enemy> ()) {
-								hit.transform.GetComponent<Enemy> ().disableWalk = true;
-							}
-							hit.transform.GetComponent<Rigidbody> ().velocity = (transform.forward * knockDirectionMult.x + hit.transform.up * knockDirectionMult.y) * heldWeapon.knockback * knockMult;
-						}
-						if (hit.transform.GetComponent<Enemy> () && hit.transform.GetComponent<Health> ()) {
-							ChangeEnemyCol (hitCol, hit.transform.GetComponent<Enemy> ().rends);
-							PlayHitSound();
-						}
-					}
-				}
-			}
-		} else if (Physics.Raycast (Camera.main.transform.position, Camera.main.transform.forward, out hit, Itemrange, hittableLayers)) {
-			if (hit.transform != transform) {
-				if(hit.transform.GetComponent<Health> () && hit.transform.GetComponent<Health> ().health != 0) {
-					if (!hit.transform.GetComponent<Health> ().invulnerable)
-						hit.transform.GetComponent<Health> ().health -= (float) 1*hit.transform.GetComponent<Health>().dmgTaken;
-					if (hit.transform.GetComponent<Rigidbody> ()) {
+					if(hit.transform.GetComponent<Health>()) {
 						if (!walk.moving) {
 							knockMult = 1;
 						} else if (walk.speed == walk.baseSpeed)
@@ -106,12 +81,26 @@ public class Punch : MonoBehaviour {
 						if (hit.transform.GetComponent<Enemy> ()) {
 							hit.transform.GetComponent<Enemy> ().disableWalk = true;
 						}
-						hit.transform.GetComponent<Rigidbody> ().velocity = (transform.forward * knockDirectionMult.x + hit.transform.up * knockDirectionMult.y) * Itemknockback * knockMult;
+						heldWeapon.DealDamage (hit.transform.GetComponent<Health>(), transform, knockDirectionMult, heldWeapon.IDs);
+
 					}
-					if (hit.transform.GetComponent<Enemy> () && hit.transform.GetComponent<Health> ()) {
-						ChangeEnemyCol (hitCol, hit.transform.GetComponent<Enemy> ().rends);
-						PlayHitSound();
+				}
+			}
+		} else if (Physics.Raycast (Camera.main.transform.position, Camera.main.transform.forward, out hit, Itemrange, hittableLayers)) {
+			if (hit.transform != transform) {
+				if(hit.transform.GetComponent<Health> () && hit.transform.GetComponent<Health> ().health != 0) {
+					if (!walk.moving) {
+						knockMult = 1;
+					} else if (walk.speed == walk.baseSpeed)
+						knockMult = WalkKnockbackMult;
+					else if (walk.speed == walk.sprintSpeed)
+						knockMult = SprintKnockbackMult;
+					if (hit.transform.GetComponent<Enemy> ()) {
+						hit.transform.GetComponent<Enemy> ().disableWalk = true;
 					}
+					Item_Weapon heldWeapon = new Item_Weapon("", 1, 1, 0, 1, 1);
+					heldWeapon.DealDamage (hit.transform.GetComponent<Health>(), transform, knockDirectionMult, null);
+
 				}
 			}
 		}
@@ -130,5 +119,38 @@ public class Punch : MonoBehaviour {
 
 	public static void PlayHitSound() {
 		hitSounds [Random.Range (0, hitSounds.Length)].Play ();
+	}
+
+	public void changeHeldItem(Item item) {
+		heldItem = item;
+		Transform heldParent = heldModel.parent;
+		Destroy (heldModel.gameObject);
+		heldModel = ((GameObject)Instantiate (heldItem.model)).transform;
+		heldModel.SetParent (heldParent);
+		heldModel.localPosition = heldItem.model.transform.localPosition;
+		heldModel.localRotation = heldItem.model.transform.localRotation;
+		punchAnim = heldModel.GetComponent<Animation>();
+		if (item is Item_Weapon) {
+			heldModel.GetComponent<WeaponInfo>().weapon = heldItem as Item_Weapon;
+		}
+	}
+
+	public void Interact() {
+		RaycastHit hit;
+		if (Physics.Raycast (transform.position, transform.forward, out hit, 4)) {
+			if(hit.collider.tag == "Interactable") {
+				if(hit.collider.GetComponent<NPC>()) {
+					if(hit.collider.GetComponent<QuestNPC>()) {
+						if(!hit.collider.GetComponent<QuestNPC>().talking) {
+							hit.collider.GetComponent<QuestNPC>().Talk (GameManager.currentQuest);
+						}
+					} else if(hit.collider.GetComponent<NPCTalking>()) {
+						if(!hit.collider.GetComponent<NPCTalking>().talking) {
+							StartCoroutine (hit.collider.GetComponent<NPCTalking>().Talk ());
+						}
+					} 
+				}
+			}
+		}
 	}
 }

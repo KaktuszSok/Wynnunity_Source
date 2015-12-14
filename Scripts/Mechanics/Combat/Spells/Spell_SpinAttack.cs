@@ -14,6 +14,7 @@ public class Spell_SpinAttack : Spell {
 	public Vector2 StunEffect = Vector2.one;
 
 	void Start() {
+		health = transform.root.GetComponent<Health> ();
 		GetComponent<Collider> ().enabled = false;
 	}
 
@@ -39,7 +40,7 @@ public class Spell_SpinAttack : Spell {
 				if (hit && !transform.root.GetComponent<Enemy> () && hit.transform.root.GetComponent<Enemy> () ||
 				    hit && transform.root.GetComponent<Enemy> () && !hit.transform.root.GetComponent<Enemy> ()) {
 					adjustedWeapon.DealDamage (hit, transform, knockMultipliers, Weapon.IDs, true);
-					hit.transform.root.GetComponent<Effects>().Apply("Stun", StunEffect.x, StunEffect.y);
+					hit.transform.root.GetComponent<Effects>().Apply("Stun", (new float[2] {StunEffect.x, StunEffect.y}));
 					hitObjs.Add (hit);
 				}
 			}

@@ -19,6 +19,7 @@ public class EnemySpell : MonoBehaviour {
 	public bool chooseByDistance;
 
 	void Start() {
+		tryCastTime = Time.time + minSpellDelay;
 		if (!enemy)
 			enemy = transform.root.GetComponent<EnemyAttack> ();
 	}
@@ -28,8 +29,8 @@ public class EnemySpell : MonoBehaviour {
 			StopAllCoroutines ();
 		}
 
-		if (onlyCastOnGround && enemy.enemy.GroundCheck.chckdist() && enemy.enemy.player && enemy.hasLOS && Spells.Count != 0 && enemy.enemy.player.GetComponent<Health> ().health != 0 ||
-		    !onlyCastOnGround && enemy.enemy.player && enemy.hasLOS && Spells.Count != 0 && enemy.enemy.player.GetComponent<Health> ().health != 0) {
+		if (Time.time > tryCastTime && onlyCastOnGround && enemy.enemy.GroundCheck.chckdist() && enemy.enemy.player && enemy.hasLOS && Spells.Count != 0 && enemy.enemy.player.GetComponent<Health> ().health != 0 ||
+		    Time.time > tryCastTime && !onlyCastOnGround && enemy.enemy.player && enemy.hasLOS && Spells.Count != 0 && enemy.enemy.player.GetComponent<Health> ().health != 0) {
 			Spell = chooseSpell ();
 			if (Spell != null) {
 				float spellRange = spellRanges [Spells.IndexOf (Spell)];
@@ -75,7 +76,7 @@ public class EnemySpell : MonoBehaviour {
 
 	public IEnumerator StartCasting(Spell spell, Item_Weapon weapon) {
 		WarmupFX.Play ();
-		enemy.enemy.effects.Apply ("Stun", WarmupFX.duration, 2);
+		enemy.enemy.effects.Apply ("Stun", (new float[2]{WarmupFX.duration, 2}));
 		yield return new WaitForSeconds (WarmupFX.duration - DisableTurnBeforeEndCast);
 		enemy.enemy.disableTurnTime = Time.time + DisableTurnBeforeEndCast;
 		yield return new WaitForSeconds (WarmupFX.duration - WarmupFX.time);

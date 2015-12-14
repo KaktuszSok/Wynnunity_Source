@@ -5,7 +5,7 @@ public class TagRotation : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-	
+		GetComponent<Canvas> ().worldCamera = Camera.main;
 	}
 	
 	// Update is called once per frame

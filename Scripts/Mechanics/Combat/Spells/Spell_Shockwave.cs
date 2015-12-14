@@ -20,6 +20,7 @@ public class Spell_Shockwave : Spell {
 	public float waveThickness;
 
 	void Start() {
+		health = transform.root.GetComponent<Health> ();
 		defParent = transform.parent;
 		defPos = transform.localPosition;
 	}

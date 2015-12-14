@@ -16,39 +16,39 @@ public class Tag : MonoBehaviour {
 		if(!text)
 			text = GetComponent<Text> ();
 		HPBar = new string[] {
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::</color>",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + "::::</color>:",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::</color>::",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + "::</color>:::",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":</color>::::",
-			"[:::::</color>" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[::::</color>:" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[:::</color>::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[::</color>:::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[:</color>::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[</color>:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::"
+			"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::</color>",
+			"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + "::::</color>:",
+			"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::</color>::",
+			"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + "::</color>:::",
+			"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":</color>::::",
+			"[:::::</color>" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+			"[::::</color>:" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+			"[:::</color>::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+			"[::</color>:::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+			"[:</color>::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+			"[</color>:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::"
 		};
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-		if (enemy.HP.health != lasthp) {
+		if (Mathf.CeilToInt (enemy.HP.health) != lasthp) {
 			HPBar = new string[] {
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::</color>",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + "::::</color>:",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::</color>::",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + "::</color>:::",
-			"[:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":</color>::::",
-			"[:::::</color>" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[::::</color>:" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[:::</color>::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[::</color>:::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[:</color>::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::",
-			"[</color>:::::" + "<color=maroon>" + enemy.HP.health + "</color>" + ":::::"
-		};
+				"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::</color>",
+				"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + "::::</color>:",
+				"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::</color>::",
+				"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + "::</color>:::",
+				"[:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":</color>::::",
+				"[:::::</color>" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+				"[::::</color>:" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+				"[:::</color>::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+				"[::</color>:::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+				"[:</color>::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::",
+				"[</color>:::::" + "<color=maroon>" + Mathf.CeilToInt (enemy.HP.health) + "</color>" + ":::::"
+			};
 		}
-		lasthp = (int) enemy.HP.health;
+		lasthp = Mathf.CeilToInt (enemy.HP.health);
 		if (enemy.HP.health == 0)
 			//Vector3 stayPos = 
 			transform.parent.SetParent (null);

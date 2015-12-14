@@ -12,7 +12,7 @@ public class DoTArea : MonoBehaviour {
 	private Collider Collider;
 	public float lifeTime = -1;
 	private float destroyTime;
-	public Vector2 slowdown = Vector2.one;
+	public Vector2 slowdown = new Vector2(1f, 5);
 	
 	public int Hurt = -1; //Use only if health is null. -1 = Default Settings (Hurt both), 0 = Hurt Player, 1 = Hurt Enemies.
 
@@ -36,7 +36,7 @@ public class DoTArea : MonoBehaviour {
 			foreach(Health hitObj in updatedHits) {
 				if(hitObj && hitObj.GetComponent<Enemy>()) {
 					if(Hurt == -1 && !health || Hurt == 1 && !health || health && !health.GetComponent<Enemy>())
-						hitObj.GetComponent<Enemy>().effects.Apply ("Slowness", slowdown.x, slowdown.y);
+						hitObj.GetComponent<Enemy>().effects.Apply ("Slowness", (new float[2] {slowdown.x, slowdown.y}));
 				}
 			}
 		}

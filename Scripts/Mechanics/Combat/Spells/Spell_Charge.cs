@@ -18,6 +18,7 @@ public class Spell_Charge : Spell {
 	public ParticleSystem FX;
 
 	void Start() {
+		health = transform.root.GetComponent<Health> ();
 		if (!hitbox)
 			hitbox = transform.root.GetComponent<ColInfo> ();
 		if (!FX)

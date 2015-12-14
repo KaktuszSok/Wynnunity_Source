@@ -5,18 +5,13 @@ public class TrailFX : MonoBehaviour {
 
 	private ParticleSystemRenderer FX;
 
-	// Use this for initialization
 	void Start () {
-		FX = GetComponent<ParticleSystemRenderer> ();
-		if(Options.ThreeDTrail)
-			FX.renderMode = ParticleSystemRenderMode.Mesh;
-		else
-			FX.renderMode = ParticleSystemRenderMode.Billboard;
+		ApplyOptions ();
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		if(Options.ThreeDTrail)
+
+	public void ApplyOptions () {
+		FX = GetComponent<ParticleSystemRenderer> ();
+		if(Options.ThreeDParticles)
 			FX.renderMode = ParticleSystemRenderMode.Mesh;
 		else
 			FX.renderMode = ParticleSystemRenderMode.Billboard;

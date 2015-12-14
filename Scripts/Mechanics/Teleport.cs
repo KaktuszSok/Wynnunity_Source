@@ -8,19 +8,31 @@ public class Teleport : MonoBehaviour {
 	public bool activated = true;
 	public bool running = false;
 	public Texture texture;
+	public Material sharedMat;
 	private Renderer rend;
-	private Material mat;
 	public bool colourRainbow = false;
 	public float refreshDelay = 2;
 	public float enableDistance = 32;
 	public Camera cam;
 	public bool relative;
 	public bool keepVelocity;
-	
+
+	private float nextCheck;
+	public Material mat;
+
 	void Start() {
+		UpdateTexture ();
+	}
+
+	public void UpdateTexture() {
 		rend = GetComponent<Renderer> ();
-		mat = rend.material;
-		mat.SetTexture ("_EmissionMap", texture);
+		if (!sharedMat) {
+			sharedMat = Instantiate(rend.sharedMaterial);
+		}
+		cam.enabled = false;
+		cam.Render ();
+		sharedMat.SetTexture ("_EmissionMap", texture);
+		rend.sharedMaterial = sharedMat;
 	}
 
 	void OnTriggerEnter (Collider col) {
@@ -43,35 +55,28 @@ public class Teleport : MonoBehaviour {
 
 	void Update () {
 
-		float Closest = enableDistance + 1;
-		foreach(Player Player in PlayerManager.Players) {
-			float Distance = Vector3.Distance(Player.transform.position, transform.position);
-			if(Distance <= enableDistance) {
-				if(Distance < Closest) {
-					Closest = Distance;
+		if (Time.time > nextCheck) {
+			nextCheck = Time.time + 0.5f;
+			float Closest = enableDistance + 1;
+			foreach (Player Player in PlayerManager.Players) {
+				float Distance = Vector3.Distance (Player.transform.position, transform.position);
+				if (Distance <= enableDistance) {
+					if (Distance < Closest) {
+						Closest = Distance;
+					}
 				}
 			}
-		}
 
-		if (Closest <= enableDistance) {
-			activated = true;
-			if(cam) {
-				cam.enabled = true;
-			}
-		} else {
-			activated = false;
-			if(cam) {
-				cam.enabled = false;
-			}
-		}
+			if (Closest <= enableDistance) {
+				activated = true;
 
-		if (!running && activated && colourRainbow) {
-			StartCoroutine (HueTransition());
-		}
-		if (!activated && rend.enabled) {
-			rend.enabled = false;
-		} else if(activated && !rend.enabled) {
-			rend.enabled = true;
+			} else {
+				activated = false;
+			}
+
+			if (!running && activated && colourRainbow) {
+				StartCoroutine (HueTransition ());
+			}
 		}
 	}
 
@@ -84,7 +89,7 @@ public class Teleport : MonoBehaviour {
 			emissionHue = Mathf.PingPong (Time.time, 1f);
 			HSB.h = emissionHue;
 			Color colour = HSBColor.ToColor(HSB);
-			mat.SetColor ("_EmissionColor", colour);
+			rend.material.SetColor ("_EmissionColor", colour);
 			yield return new WaitForEndOfFrame();
 		}
 		running = false;

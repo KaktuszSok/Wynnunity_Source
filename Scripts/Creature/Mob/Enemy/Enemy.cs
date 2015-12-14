@@ -7,6 +7,7 @@ public class Enemy : MonoBehaviour {
 	public string visible_name;
 	public int level = 1;
 	public float speed = 2;
+	public float jumpHeight = 1.25f;
 	public float trueSpeed;
 	public float minDist = 1f;
 	public Health HP;
@@ -18,6 +19,7 @@ public class Enemy : MonoBehaviour {
 	private float defSFric;
 	public Rigidbody rb;
 	public GroundDetect GroundCheck;
+	public GroundDetect GroundCheck2;
 	public bool disableWalk = false;
 	public float disableTurnTime;
 	public bool disableTurn = false;
@@ -36,9 +38,15 @@ public class Enemy : MonoBehaviour {
 	public Effects effects;
 	public float speedMult;
 	public ParticleSystem StunFX;
+	public bool persistent;
 
 	// Use this for initialization
 	void Start () {
+		if (!GroundCheck2) {
+			GameObject instObj = (GameObject) Instantiate(Player.EnemyGC2, GroundCheck.transform.position + GetComponent<Collider>().bounds.extents.z*transform.forward*0.475f, GroundCheck.transform.rotation);
+			instObj.transform.SetParent (transform);
+			GroundCheck2 = instObj.GetComponent<GroundDetect>();
+		}
 		trueSpeed = speed;
 		if(transform.FindChild ("StunFX")) {
 			StunFX = transform.FindChild ("StunFX").GetComponent<ParticleSystem>();
@@ -54,7 +62,7 @@ public class Enemy : MonoBehaviour {
 		BodyMarker[] rendMarkers = GetComponentsInChildren<BodyMarker> ();
 		foreach (BodyMarker marker in rendMarkers) {
 			if(marker.ColourSample) {
-				defColour = marker.GetComponent<MeshRenderer>().material.color;
+				defColour = marker.GetComponent<MeshRenderer>().materials[marker.submat].color;
 			}
 			rends.Add(marker.GetComponent<MeshRenderer>());
 		}
@@ -71,14 +79,14 @@ public class Enemy : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void FixedUpdate () {
 
-		if (effects.Slowness.x != 0 && effects.Slowness.y != 0) {
-			speedMult = 1 / (effects.Slowness.y + 1);
-		} else if (effects.Stun.x != 0 && effects.Stun.y != 0) {
+		if (effects.Stun.y != 0) {
 			speedMult = 0;
 			if(StunFX && effects.Stun.y == 1)
 				StunFX.Play ();
+		} else if (effects.Slowness.y != 0 || effects.Speed.y != 0) {
+			speedMult = 1 - effects.Slowness.y*0.1f + effects.Speed.y*0.1f;
 		} else {
 			speedMult = 1;
 			if(StunFX)
@@ -108,17 +116,17 @@ public class Enemy : MonoBehaviour {
 					groundCol.material.dynamicFriction = 0;
 				}
 			}
-		} else if (GroundCheck.chckdist () && !disableWalk && trueSpeed != 0 && !tooFast) {
+		} else if (!disableWalk && GroundCheck.chckdist () && !disableWalk && trueSpeed != 0 && !tooFast) {
 			if (groundCol) {
 				groundCol.material.staticFriction = 0;
 				groundCol.material.dynamicFriction = 0;
 			}
-		} else if (GroundCheck.chckdist () && disableWalk || trueSpeed == 0 || tooFast) {
+		} else if (!disableWalk && GroundCheck.chckdist () && disableWalk || trueSpeed == 0 || tooFast) {
 			if (groundCol) {
 				groundCol.material.staticFriction = defSFric;
 				groundCol.material.dynamicFriction = defDFric;
 			}
-		} else if (!GroundCheck.chckdist () && disableWalk && trueSpeed != 0 && !tooFast) {
+		} else if (!disableWalk && !GroundCheck.chckdist () && disableWalk && trueSpeed != 0 && !tooFast) {
 			if (groundCol) {
 				groundCol.material.staticFriction = 1;
 				groundCol.material.dynamicFriction = 1;
@@ -141,14 +149,14 @@ public class Enemy : MonoBehaviour {
 	}
 
 	void OnTriggerStay(Collider col) {
-		if (!inSomething && col.tag != "NoPush" && col.tag != "HitZone") {
+		if (!inSomething && HP.health != 0 && (col.tag == "Push" || col.tag == "Player")) {
 			if (!col.transform.root.GetComponent<Health> () || col.transform.root.GetComponent<Health> () && col.transform.root.GetComponent<Health> ().health != 0) {
 				inSomething = col.transform;
 				inSmthPos = transform.position;
 				inSmthPos.x = inSomething.position.x;
 				inSmthPos.z = inSomething.position.z;
 			}
-		} else if(inSomething && col.tag != "NoPush" && col.tag != "HitZone" && col.transform.root.GetComponent<Health> () && col.transform.root.GetComponent<Health> ().health == 0)
+		} else if(inSomething && HP.health != 0 && (col.tag == "Push" || col.tag == "Player") && col.transform.root.GetComponent<Health> () && col.transform.root.GetComponent<Health> ().health == 0)
 			inSomething = null;
 	}
 
@@ -159,7 +167,7 @@ public class Enemy : MonoBehaviour {
 
 	void revertColour() {
 		foreach (MeshRenderer rend in rends) {
-			rend.material.color = defColour;
+			rend.materials[rend.GetComponent<BodyMarker>().submat].color = defColour;
 		}
 	}
 }
